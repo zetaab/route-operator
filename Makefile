@@ -7,7 +7,7 @@ install_deps:
 
 build:
 	rm -rf bin/$(OPERATOR_NAME)
-	go build -v -i -o bin/$(OPERATOR_NAME) ./cmd
+	go build -v -i -o bin/$(OPERATOR_NAME) ./pkg/controller
 
 build-image:
 	rm -rf bin/linux/

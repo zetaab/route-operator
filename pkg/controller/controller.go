@@ -1,19 +1,13 @@
 package controller
 
 import (
-	"encoding/json"
-	"fmt"
 	"log"
 	"sync"
 	"time"
 
 	"k8s.io/api/core/v1"
-	v1core "k8s.io/client-go/kubernetes/typed/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	kubeletapis "k8s.io/kubernetes/pkg/kubelet/apis"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/types"
-	"k8s.io/apimachinery/pkg/util/strategicpatch"
 	"k8s.io/apimachinery/pkg/watch"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/cache"
@@ -76,61 +70,8 @@ func NewNodeController(kclient *kubernetes.Clientset, config *restclient.Config)
 	return nodeWatcher
 }
 
-// PatchNodeLabels patches node labels.
-func PatchNodeLabels(c v1core.CoreV1Interface, nodeName types.NodeName, oldNode *v1.Node, newNode *v1.Node) (*v1.Node, []byte, error) {
-	patchBytes, err := preparePatchBytesforNodeStatus(nodeName, oldNode, newNode)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	updatedNode, err := c.Nodes().Patch(string(nodeName), types.StrategicMergePatchType, patchBytes)
-	if err != nil {
-		return nil, nil, fmt.Errorf("failed to patch objectmeta %q for node %q: %v", patchBytes, nodeName, err)
-	}
-	return updatedNode, patchBytes, nil
-}
-
-func preparePatchBytesforNodeStatus(nodeName types.NodeName, oldNode *v1.Node, newNode *v1.Node) ([]byte, error) {
-	oldData, err := json.Marshal(oldNode)
-	if err != nil {
-		return nil, fmt.Errorf("failed to Marshal oldData for node %q: %v", nodeName, err)
-	}
-
-	newNode.Spec = oldNode.Spec
-	newData, err := json.Marshal(newNode)
-	if err != nil {
-		return nil, fmt.Errorf("failed to Marshal newData for node %q: %v", nodeName, err)
-	}
-
-	patchBytes, err := strategicpatch.CreateTwoWayMergePatch(oldData, newData, v1.Node{})
-	if err != nil {
-		return nil, fmt.Errorf("failed to CreateTwoWayMergePatch for node %q: %v", nodeName, err)
-	}
-	return patchBytes, nil
-}
 
 func (c *NodeController) createNode(obj interface{}) {
 	node := obj.(*v1.Node)
-	needupdate := false
-	// always when new node is created check that correct labels exist
-	if val, ok := node.ObjectMeta.Labels[kubeletapis.LabelZoneFailureDomain]; ok {
-		if val != "nova" {
-			// correct zone
-			needupdate = true
-		}
-	} else {
-		// add zone nova
-		needupdate = true
-	}
-	if needupdate {
-		// correct zone
-		newnode := node.DeepCopy()
-		newnode.ObjectMeta.Labels[kubeletapis.LabelZoneFailureDomain] = "nova"
-		result, _, err := PatchNodeLabels(c.kclient.CoreV1(), types.NodeName(node.Name), node, newnode)
-		if err != nil {
-			log.Println(fmt.Sprintf("Failed to update node: %s", err.Error()))
-		} else {
-			log.Println(fmt.Sprintf("Updated node %s label: %s = nova", result.Name, kubeletapis.LabelZoneFailureDomain))
-		}
-	}
+	log.Println("foobar")
 }
