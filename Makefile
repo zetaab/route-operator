@@ -1,5 +1,5 @@
-OPERATOR_NAME  := f5-route-operator
-IMAGE := foobar.com/devops/$(OPERATOR_NAME)/public/$(OPERATOR_NAME)
+OPERATOR_NAME  := route-operator
+IMAGE := foobar.com/$(OPERATOR_NAME)
 .PHONY: install_deps build build-image
 
 install_deps:
