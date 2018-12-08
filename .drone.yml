@@ -1,0 +1,13 @@
+workspace:
+  base: /go
+  path: src/github.com/zetaab/route-operator
+
+clone:
+  git:
+    image: plugins/git
+
+pipeline:
+  backend:
+    image: golang
+    commands:
+      - make build
